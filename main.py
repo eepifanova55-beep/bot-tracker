@@ -7,6 +7,7 @@ import os
 from datetime import datetime, timedelta
 from typing import Dict
 
+from dotenv import load_dotenv
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
@@ -25,10 +26,15 @@ from utils import (
     create_weekly_report
 )
 
-from dotenv import load_dotenv
+# Загружаем переменные из .env только если он существует (для локальной разработки)
+# override=False не перезаписывает уже установленные переменные окружения (например, на Railway)
+load_dotenv(override=False)
 
-# Загрузка переменных окружения
-load_dotenv()
+# Проверяем наличие токена
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+if not BOT_TOKEN:
+    raise ValueError("BOT_TOKEN не найден в переменных окружения. "
+                     "Убедитесь, что он добавлен в Railway или файл .env")
 
 # Настройка логирования
 logging.basicConfig(
@@ -42,10 +48,7 @@ class HabitTrackerBot:
     """Основной класс бота для отслеживания привычек"""
 
     def __init__(self):
-        self.token = os.getenv("BOT_TOKEN")
-        if not self.token:
-            raise ValueError("BOT_TOKEN не найден в .env файле")
-
+        self.token = BOT_TOKEN   # используем уже проверенную переменную
         self.application = Application.builder().token(self.token).build()
         self.setup_handlers()
 
